@@ -1,5 +1,0 @@
-[phases.setup]
-nixPkgs = ["libGL"]
-
-[start]
-cmd = "python weight_estimator_api.py"

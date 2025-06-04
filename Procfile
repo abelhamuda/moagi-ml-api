@@ -1,1 +1,1 @@
-web: bash install.sh && python weight_estimator_api.py
+web: gunicorn --bind 0.0.0.0:$PORT app:app
