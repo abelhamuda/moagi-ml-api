@@ -2,11 +2,8 @@
 Flask==2.3.3
 gunicorn==21.2.0
 
-# ML dependencies - use lighter versions
+# ML dependencies - minimal versions
 tensorflow-cpu==2.13.0
-opencv-python-headless==4.8.1.78
+opencv-python-headless==4.8.0.76
 numpy==1.24.3
 Pillow==10.0.1
-
-# Additional utilities
-Werkzeug==2.3.7
