@@ -1,1 +1,1 @@
-web: python weight_estimator_api.py
+web: bash install.sh && python weight_estimator_api.py
