@@ -5,7 +5,7 @@ import tensorflow as tf
 import os
 import logging
 from flask_cors import CORS
-import psutil  # To monitor memory
+import psutil
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,8 +17,8 @@ try:
     logger.info("Attempting to load model: laundry_weight_model.keras")
     model = tf.keras.models.load_model('laundry_weight_model.keras')
     logger.info("Model loaded successfully")
-    logger.info("Application ready")
     logger.info(f"Initial memory usage: {psutil.virtual_memory().percent}%")
+    logger.info("Application ready")
 except Exception as e:
     logger.error(f"Failed to load model: {str(e)}")
     raise RuntimeError(f"Model loading failed: {str(e)}")
