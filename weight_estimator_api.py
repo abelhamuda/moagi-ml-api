@@ -16,7 +16,7 @@ try:
     logger.info("Attempting to load model: laundry_weight_model.keras")
     model = tf.keras.models.load_model('laundry_weight_model.keras')
     logger.info("Model loaded successfully")
-    logger.info("Application ready")  # Added to confirm readiness
+    logger.info("Application ready")
 except Exception as e:
     logger.error(f"Failed to load model: {str(e)}")
     raise RuntimeError(f"Model loading failed: {str(e)}")
@@ -56,5 +56,5 @@ def estimate_weight():
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 8000))
-    logger.info(f"Starting app on port {port}")
+    logger.info(f"Starting Flask app on port {port}")
     app.run(host='0.0.0.0', port=port)

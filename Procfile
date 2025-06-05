@@ -1,1 +1,1 @@
-web: gunicorn --bind 0.0.0.0:$PORT --timeout 120 weight_estimator_api:app
+web: gunicorn --bind 0.0.0.0:$PORT --timeout 180 weight_estimator_api:app
