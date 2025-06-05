@@ -1,1 +1,1 @@
-web: gunicorn --bind 0.0.0.0:8000 weight_estimator_api:app
+web: gunicorn --bind 0.0.0.0:$PORT weight_estimator_api:app

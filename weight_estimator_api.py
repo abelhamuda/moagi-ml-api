@@ -2,37 +2,61 @@ from flask import Flask, request, jsonify
 import cv2
 import numpy as np
 import tensorflow as tf
+import os
+import logging
+from flask_cors import CORS  # Add CORS support
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize Flask app with CORS
 app = Flask(__name__)
+CORS(app)  # Allow cross-origin requests (e.g., from Laravel)
 
-# Load the model once at startup
-model = tf.keras.models.load_model('laundry_weight_model.keras')
+# Load the model with error handling
+try:
+    logger.info("Attempting to load model: laundry_weight_model.keras")
+    model = tf.keras.models.load_model('laundry_weight_model.keras')
+    logger.info("Model loaded successfully")
+except Exception as e:
+    logger.error(f"Failed to load model: {str(e)}")
+    raise RuntimeError(f"Model loading failed: {str(e)}")
 
 @app.route('/health', methods=['GET'])
 def health():
+    logger.info("Health check requested")
     return jsonify({'status': 'healthy'}), 200
 
 @app.route('/estimate_weight', methods=['POST'])
 def estimate_weight():
+    logger.info("Received request at /estimate_weight")
     if 'image' not in request.files:
+        logger.warning("No image provided in request")
         return jsonify({'error': 'No image provided', 'fallback': True}), 400
 
     file = request.files['image']
     img_array = np.frombuffer(file.read(), np.uint8)
     img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
     if img is None:
+        logger.error("Failed to decode image")
         return jsonify({'error': 'Could not load image', 'fallback': True}), 400
 
     img = cv2.resize(img, (224, 224))
     img = img / 255.0
-    img = np.expand_dims(img, axis=0) 
+    img = np.expand_dims(img, axis=0)
 
     try:
+        logger.info("Predicting weight...")
         weight = model.predict(img)[0][0]
         weight = max(0.5, float(weight))  # Ensure minimum weight
+        logger.info(f"Predicted weight: {weight}")
         return jsonify({'weight': weight}), 200
     except Exception as e:
+        logger.error(f"Prediction failed: {str(e)}")
         return jsonify({'error': str(e), 'fallback': True}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+    port = int(os.getenv("PORT", 8000))  # Use Railway's PORT or default to 8000
+    logger.info(f"Starting app on port {port}")
+    app.run(host='0.0.0.0', port=port)
