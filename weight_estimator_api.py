@@ -7,12 +7,17 @@ import logging
 from flask_cors import CORS
 import psutil
 
+# Konfigurasi logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
 
+# Batasi ukuran upload (contoh: 5MB)
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
+
+# Load model
 try:
     logger.info("Attempting to load model: laundry_weight_model.keras")
     model = tf.keras.models.load_model('laundry_weight_model.keras')
@@ -27,12 +32,13 @@ except Exception as e:
 def health():
     logger.info("Health check requested")
     logger.info(f"Memory usage during health check: {psutil.virtual_memory().percent}%")
-    return jsonify({'status': 'healthy'}), 200
+    return jsonify({'status': 'healthy'}), 200, {'Content-Type': 'application/json'}
 
 @app.route('/estimate_weight', methods=['POST'])
 def estimate_weight():
     logger.info("Received request at /estimate_weight")
     logger.info(f"Memory usage before processing: {psutil.virtual_memory().percent}%")
+
     if 'image' not in request.files:
         logger.warning("No image provided in request")
         return jsonify({'error': 'No image provided', 'fallback': True}), 400
@@ -40,8 +46,9 @@ def estimate_weight():
     file = request.files['image']
     img_array = np.frombuffer(file.read(), np.uint8)
     img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-    if img is None:
-        logger.error("Failed to decode image")
+
+    if img is None or img.size == 0:
+        logger.error("Invalid image content")
         return jsonify({'error': 'Could not load image', 'fallback': True}), 400
 
     img = cv2.resize(img, (224, 224))
@@ -52,7 +59,7 @@ def estimate_weight():
         logger.info("Predicting weight...")
         weight = model.predict(img)[0][0]
         weight = max(0.5, float(weight))
-        logger.info(f"Predicted weight: {weight}")
+        logger.info(f"Predicted weight: {weight} kg")
         logger.info(f"Memory usage after prediction: {psutil.virtual_memory().percent}%")
         return jsonify({'weight': weight}), 200
     except Exception as e:
