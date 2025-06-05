@@ -24,6 +24,7 @@ except Exception as e:
 @app.route('/health', methods=['GET'])
 def health():
     logger.info("Health check requested")
+    logger.info("Health check completed successfully")
     return jsonify({'status': 'healthy'}), 200
 
 @app.route('/estimate_weight', methods=['POST'])
