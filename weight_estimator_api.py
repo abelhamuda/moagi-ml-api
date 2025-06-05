@@ -5,6 +5,7 @@ import tensorflow as tf
 import os
 import logging
 from flask_cors import CORS
+import psutil  # To monitor memory
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ try:
     model = tf.keras.models.load_model('laundry_weight_model.keras')
     logger.info("Model loaded successfully")
     logger.info("Application ready")
+    logger.info(f"Initial memory usage: {psutil.virtual_memory().percent}%")
 except Exception as e:
     logger.error(f"Failed to load model: {str(e)}")
     raise RuntimeError(f"Model loading failed: {str(e)}")
@@ -24,12 +26,13 @@ except Exception as e:
 @app.route('/health', methods=['GET'])
 def health():
     logger.info("Health check requested")
-    logger.info("Health check completed successfully")
+    logger.info(f"Memory usage during health check: {psutil.virtual_memory().percent}%")
     return jsonify({'status': 'healthy'}), 200
 
 @app.route('/estimate_weight', methods=['POST'])
 def estimate_weight():
     logger.info("Received request at /estimate_weight")
+    logger.info(f"Memory usage before processing: {psutil.virtual_memory().percent}%")
     if 'image' not in request.files:
         logger.warning("No image provided in request")
         return jsonify({'error': 'No image provided', 'fallback': True}), 400
@@ -50,6 +53,7 @@ def estimate_weight():
         weight = model.predict(img)[0][0]
         weight = max(0.5, float(weight))
         logger.info(f"Predicted weight: {weight}")
+        logger.info(f"Memory usage after prediction: {psutil.virtual_memory().percent}%")
         return jsonify({'weight': weight}), 200
     except Exception as e:
         logger.error(f"Prediction failed: {str(e)}")
