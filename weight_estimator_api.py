@@ -4,21 +4,19 @@ import numpy as np
 import tensorflow as tf
 import os
 import logging
-from flask_cors import CORS  # Add CORS support
+from flask_cors import CORS
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize Flask app with CORS
 app = Flask(__name__)
-CORS(app)  # Allow cross-origin requests (e.g., from Laravel)
+CORS(app)
 
-# Load the model with error handling
 try:
     logger.info("Attempting to load model: laundry_weight_model.keras")
     model = tf.keras.models.load_model('laundry_weight_model.keras')
     logger.info("Model loaded successfully")
+    logger.info("Application ready")  # Added to confirm readiness
 except Exception as e:
     logger.error(f"Failed to load model: {str(e)}")
     raise RuntimeError(f"Model loading failed: {str(e)}")
@@ -49,7 +47,7 @@ def estimate_weight():
     try:
         logger.info("Predicting weight...")
         weight = model.predict(img)[0][0]
-        weight = max(0.5, float(weight))  # Ensure minimum weight
+        weight = max(0.5, float(weight))
         logger.info(f"Predicted weight: {weight}")
         return jsonify({'weight': weight}), 200
     except Exception as e:
@@ -57,6 +55,6 @@ def estimate_weight():
         return jsonify({'error': str(e), 'fallback': True}), 500
 
 if __name__ == '__main__':
-    port = int(os.getenv("PORT", 8000))  # Use Railway's PORT or default to 8000
+    port = int(os.getenv("PORT", 8000))
     logger.info(f"Starting app on port {port}")
     app.run(host='0.0.0.0', port=port)
